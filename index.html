@@ -285,41 +285,9 @@
         <button onclick="sairDoSistema()" class="btn btn-voltar" style="margin-top: 30px;">Sair</button>
     </section>
 
-    <section id="tela-remedios" class="tela">
-        <h2>Meus Remédios</h2>
-        <p>Cadastre aqui os remédios que precisa tomar.</p>
-
-        <form id="form-remedio">
-            <label for="nome-remedio">Nome do Remédio:</label>
-            <input type="text" id="nome-remedio" placeholder="Ex: Losartana" required>
-            
-            <label for="intervalo-remedio">Tomar a cada (horas):</label>
-            <select id="intervalo-remedio" required>
-                <option value="">Selecione o intervalo</option>
-                <option value="24">24 horas (1 vez ao dia)</option>
-                <option value="12">12 horas (2 vezes ao dia)</option>
-                <option value="8">8 horas (3 vezes ao dia)</option>
-                <option value="6">6 horas (4 vezes ao dia)</option>
-            </select>
-            
-            <label for="horario-remedio">Primeiro Horário de Hoje (24h):</label>
-            <input type="time" id="horario-remedio" required>
-            
-            <button type="submit" class="btn" style="background-color: var(--cor-sucesso);">Adicionar Remédio</button>
-        </form>
-
-        <hr>
-        <h3>Lista de Remédios Agendados:</h3>
-        <div id="lista-remedios-container">
-            <p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>
-        </div>
-
-        <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
-    </section>
-
     <section id="tela-calendario" class="tela">
         <h2>📅 Agenda do Centro de Convivência</h2>
-        <p>Confira a programação semanal de atividades.</p>
+        <p>Confira a programação semanal de atividades no período da manhã (08:00h às 11:00h).</p>
         <div id="calendario-container">
             </div>
         <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
@@ -395,28 +363,23 @@
     const contatoNomeDisplay = document.getElementById('contato-nome');
     const contatoTelefoneDisplay = document.getElementById('contato-telefone-display');
     
-    // NOVO: DADOS ESTÁTICOS DO CALENDÁRIO
+    // NOVO: DADOS ESTÁTICOS DO CALENDÁRIO APENAS NO HORÁRIO DA MANHÃ (08:00h às 11:00h)
     const agendaCentro = {
         'Segunda-feira': [
             { horario: '09:00', atividade: 'Ginástica Suave' },
-            { horario: '10:30', atividade: 'Oficina de Artesanato' },
-            { horario: '14:00', atividade: 'Roda de Leitura' }
+            { horario: '10:30', atividade: 'Oficina de Artesanato' }
         ],
         'Terça-feira': [
-            { horario: '09:30', atividade: 'Ioga e Meditação' },
-            { horario: '14:30', atividade: 'Bingo Recreativo' }
+            { horario: '09:30', atividade: 'Ioga e Meditação' }
         ],
         'Quarta-feira': [
-            { horario: '10:00', atividade: 'Dança Sênior' },
-            { horario: '15:00', atividade: 'Palestra de Saúde' }
+            { horario: '10:00', atividade: 'Dança Sênior' }
         ],
         'Quinta-feira': [
-            { horario: '09:00', atividade: 'Grupo de Caminhada' },
-            { horario: '14:00', atividade: 'Jogos de Tabuleiro' }
+            { horario: '09:00', atividade: 'Grupo de Caminhada' }
         ],
         'Sexta-feira': [
-            { horario: '10:30', atividade: 'Música e Coral' },
-            { horario: '15:30', atividade: 'Chá e Conversa' }
+            { horario: '10:30', atividade: 'Música e Coral' }
         ],
         'Sábado': [],
         'Domingo': []
