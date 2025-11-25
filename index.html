@@ -46,7 +46,7 @@
         header {
             background-color: var(--cor-primaria);
             color: var(--cor-branco);
-            padding: 40px 30px; /* AUMENTADO PARA 25px */
+            padding: 50px 30px; /* AUMENTADO DE 40px PARA 50px */
             font-size: 1.4rem;
             font-weight: bold;
             
@@ -65,12 +65,11 @@
             white-space: nowrap; 
         }
         
-        /* Seus estilos para o logo */
-#logo-app {
-    height: 40px; /* Altere este valor para definir o tamanho da sua nova imagem */
-    width: auto;
-    border-radius: 5px;
-}
+        /* Estilos do Logo */
+        #logo-app {
+            height: 40px; 
+            width: auto;
+            border-radius: 5px;
         }
         
         /* Ícone de Notificação (Sino) */
@@ -239,16 +238,6 @@
             min-height: 30px;
             cursor: pointer;
         }
-        
-        /* Estilo específico para o link de emergência na nova tela */
-        #link-emergencia {
-            display: block;
-            width: 100%;
-            padding: 18px;
-            background-color: var(--cor-atraso) !important;
-            margin-top: 15px;
-            text-decoration: none;
-        }
 
     </style>
 </head>
@@ -256,8 +245,8 @@
 
 <div class="app-container">
     <header id="header-title">
-        <img src="conecta.png" alt="Logo do Site" id="logo-app"> 
-
+        <img src="meu_logo.png" alt="Logo do Site" id="logo-app"> 
+        
         <span>Vida Plena</span> 
         
         <div id="notificacao-icon" onclick="navegarPara('tela-atrasos')" title="Clique para ver os remédios em atraso">
@@ -284,7 +273,7 @@
         </button>
         
         <button onclick="navegarPara('tela-calendario')" class="btn btn-grande-menu">
-            📅 Programação do Centro de Convivência
+            📅 Programação do Centro
         </button>
         
         <button onclick="navegarPara('tela-perfil')" class="btn btn-grande-menu">
