@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vida Plena - Assistente Diário</title>
+    <style>
+        /* --- CSS: O Visual do Site --- */
+        
+        :root {
+            /* Cores Acessíveis e Calmas */
+            --cor-fundo: #F0F4F8;       /* Cinza azulado muito claro */
+            --cor-primaria: #0056b3;    /* Azul forte para boa leitura */
+            --cor-secundaria: #0288d1;  /* Azul médio para botões */
+            --cor-texto: #1a1a1a;       /* Preto suave, alto contraste */
+            --cor-branco: #ffffff;
+            --cor-sucesso: #2e7d32;     /* Verde escuro */
+            --cor-alerta: #d32f2f;      /* Vermelho escuro */
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-size: 18px; /* Fonte base aumentada para idosos */
+            line-height: 1.6;
+        }
+
+        /* Container Principal */
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: var(--cor-branco);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding-bottom: 80px; /* Espaço para navegação se houver */
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--cor-primaria);
+            color: var(--cor-branco);
+            padding: 20px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        /* Telas (Sections) */
+        .tela {
+            display: none; /* Esconde todas as telas por padrão */
+            padding: 20px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tela.ativa {
+            display: block; /* Mostra apenas a tela ativa */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Tipografia e Hierarquia */
+        h2 {
+            color: var(--cor-primaria);
+            border-bottom: 2px solid var(--cor-fundo);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        p { margin-bottom: 20px; }
+
+        /* Formulários e Inputs Gigantes */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+
+        input:focus {
+            border-color: var(--cor-primaria);
+            outline: none;
+        }
+
+        /* Botões Acessíveis */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--cor-secundaria);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--cor-primaria);
+        }
+
+        .btn-voltar {
+            background-color: #757575;
+        }
+
+        .btn-grande-menu {
+            padding: 30px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            background-color: var(--cor-primaria);
+            border-left: 10px solid var(--cor-secundaria);
+            text-align: left;
+        }
+
+        /* Listagem de Remédios (Cards) */
+        .lista-item {
+            background-color: #eeffff;
+            border: 1px solid #b3e5fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .lista-item strong {
+            font-size: 1.3rem;
+            display: block;
+            color: var(--cor-primaria);
+        }
+
+        .btn-remover {
+            background-color: var(--cor-alerta);
+            width: auto;
+            padding: 10px 20px;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header id="header-title">Vida Plena</header>
+
+    <section id="tela-login" class="tela ativa">
+        <h2>Bem-vindo(a)</h2>
+        <p>Para começar, digite seu nome para entrar no sistema.</p>
+        <form id="form-login">
+            <label for="nome-usuario">Qual é o seu nome?</label>
+            <input type="text" id="nome-usuario" placeholder="Ex: Maria Silva" required>
+            <button type="submit" class="btn">Entrar no Sistema</button>
+        </form>
+    </section>
+
+    <section id="tela-home" class="tela">
+        <h2 id="saudacao-home">Olá!</h2>
+        <p>O que você deseja fazer agora?</p>
+        
+        <button onclick="navegarPara('tela-remedios')" class="btn btn-grande-menu">
+            💊 Meus Remédios
+        </button>
+        
+        <button onclick="navegarPara('tela-perfil')" class="btn btn-grande-menu">
+            👤 Meu Perfil e Dados
+        </button>
+        
+        <button onclick="alert('Funcionalidade de Emergência: Ligando para contato de segurança...')" class="btn btn-grande-menu" style="background-color: #d32f2f; border-left-color: #b71c1c;">
+            🆘 Botão de Emergência
+        </button>
+        
+        <button onclick="sairDoSistema()" class="btn btn-voltar" style="margin-top: 30px;">Sair</button>
+    </section>
+
+    <section id="tela-remedios" class="tela">
+        <h2>Meus Remédios</h2>
+        <p>Cadastre aqui os remédios que precisa tomar.</p>
+
+        <form id="form-remedio">
+            <label for="nome-remedio">Nome do Remédio:</label>
+            <input type="text" id="nome-remedio" placeholder="Ex: Losartana" required>
+            
+            <label for="horario-remedio">Horário:</label>
+            <input type="time" id="horario-remedio" required>
+            
+            <button type="submit" class="btn" style="background-color: var(--cor-sucesso);">Adicionar Remédio</button>
+        </form>
+
+        <hr>
+        <h3>Lista do dia:</h3>
+        <div id="lista-remedios-container">
+            <p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>
+        </div>
+
+        <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
+    </section>
+
+    <section id="tela-perfil" class="tela">
+        <h2>Meus Dados</h2>
+        <p>Aqui estão suas informações pessoais.</p>
+        
+        <div style="background: #eee; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <label>Nome Completo:</label>
+            <p id="perfil-nome" style="font-size: 1.4rem; font-weight: bold;">-</p>
+            
+            <label>Tipo Sanguíneo (Exemplo):</label>
+            <p>O+</p>
+        </div>
+
+        <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
+    </section>
+
+</div>
+
+<script>
+    /* --- JAVASCRIPT: A Lógica do Sistema --- */
+
+    // Variáveis Globais
+    const inputNome = document.getElementById('nome-usuario');
+    const listaRemediosContainer = document.getElementById('lista-remedios-container');
+    
+    // Ao carregar a página, verifica se já tem usuário salvo
+    window.onload = function() {
+        const usuarioSalvo = localStorage.getItem('usuarioIdoso');
+        if (usuarioSalvo) {
+            entrarNoSistema(usuarioSalvo);
+        }
+        carregarRemedios();
+    };
+
+    // Função de Login Simulado
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+        e.preventDefault(); // Não recarrega a página
+        const nome = inputNome.value;
+        if (nome) {
+            localStorage.setItem('usuarioIdoso', nome);
+            entrarNoSistema(nome);
+        }
+    });
+
+    function entrarNoSistema(nome) {
+        document.getElementById('saudacao-home').innerText = "Olá, " + nome + "!";
+        document.getElementById('perfil-nome').innerText = nome;
+        navegarPara('tela-home');
+    }
+
+    function sairDoSistema() {
+        localStorage.removeItem('usuarioIdoso');
+        location.reload(); // Recarrega a página para voltar ao login
+    }
+
+    // Sistema de Navegação (Troca de Telas)
+    function navegarPara(idTela) {
+        // 1. Pega todas as telas
+        const telas = document.querySelectorAll('.tela');
+        
+        // 2. Esconde todas
+        telas.forEach(tela => tela.classList.remove('ativa'));
+        
+        // 3. Mostra só a desejada
+        document.getElementById(idTela).classList.add('ativa');
+        
+        // 4. Rola para o topo
+        window.scrollTo(0, 0);
+    }
+
+    // Lógica de Remédios (Adicionar e Listar)
+    document.getElementById('form-remedio').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nomeRemedio = document.getElementById('nome-remedio').value;
+        const horarioRemedio = document.getElementById('horario-remedio').value;
+
+        const novoRemedio = { nome: nomeRemedio, horario: horarioRemedio, id: Date.now() };
+        
+        // Salva no LocalStorage
+        let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+        remedios.push(novoRemedio);
+        localStorage.setItem('listaRemedios', JSON.stringify(remedios));
+
+        // Limpa formulário e recarrega lista
+        document.getElementById('form-remedio').reset();
+        carregarRemedios();
+        alert('Remédio adicionado com sucesso!');
+    });
+
+    function carregarRemedios() {
+        const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+        listaRemediosContainer.innerHTML = ''; // Limpa a lista atual
+
+        if (remedios.length === 0) {
+            listaRemediosContainer.innerHTML = '<p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>';
+            return;
+        }
+
+        // Cria o HTML para cada remédio
+        remedios.sort((a, b) => a.horario.localeCompare(b.horario)); // Ordena por horário
+
+        remedios.forEach(remedio => {
+            const div = document.createElement('div');
+            div.className = 'lista-item';
+            div.innerHTML = `
+                <div>
+                    <strong>${remedio.nome}</strong>
+                    <span>Horário: ${remedio.horario}</span>
+                </div>
+                <button onclick="removerRemedio(${remedio.id})" class="btn btn-remover">X</button>
+            `;
+            listaRemediosContainer.appendChild(div);
+        });
+    }
+
+    function removerRemedio(id) {
+        if(confirm('Deseja realmente excluir este remédio?')) {
+            let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+            remedios = remedios.filter(r => r.id !== id);
+            localStorage.setItem('listaRemedios', JSON.stringify(remedios));
+            carregarRemedios();
+        }
+    }
+</script>
+
+</body>
+</html>
