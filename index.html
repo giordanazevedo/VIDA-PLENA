@@ -42,7 +42,7 @@
             padding-bottom: 80px; 
         }
 
-        /* Cabeçalho - Ajustado para Logo (Removido), Título Centro e Sino Direita */
+        /* Cabeçalho - Mantém Título Centro e Sino Direita */
         header {
             background-color: var(--cor-primaria);
             color: var(--cor-branco);
@@ -238,16 +238,6 @@
             min-height: 30px;
             cursor: pointer;
         }
-        
-        /* Estilo específico para o link de emergência na nova tela */
-        #link-emergencia {
-            display: block;
-            width: 100%;
-            padding: 18px;
-            background-color: var(--cor-atraso) !important;
-            margin-top: 15px;
-            text-decoration: none;
-        }
 
     </style>
 </head>
@@ -278,6 +268,10 @@
         
         <button onclick="navegarPara('tela-remedios')" class="btn btn-grande-menu">
             💊 Meus Remédios
+        </button>
+        
+        <button onclick="navegarPara('tela-calendario')" class="btn btn-grande-menu">
+            📅 Programação do Centro
         </button>
         
         <button onclick="navegarPara('tela-perfil')" class="btn btn-grande-menu">
@@ -320,6 +314,14 @@
             <p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>
         </div>
 
+        <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
+    </section>
+
+    <section id="tela-calendario" class="tela">
+        <h2>📅 Agenda do Centro de Convivência</h2>
+        <p>Confira a programação semanal de atividades.</p>
+        <div id="calendario-container">
+            </div>
         <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
     </section>
 
@@ -384,7 +386,7 @@
     const inputIntervalo = document.getElementById('intervalo-remedio'); 
     const timersNotificacao = {}; 
     
-    // NOVAS VARIÁVEIS PARA EMERGÊNCIA
+    // VARIÁVEIS PARA EMERGÊNCIA
     const formEmergencia = document.getElementById('form-contato-emergencia');
     const nomeEmergencia = document.getElementById('nome-emergencia');
     const telefoneEmergencia = document.getElementById('telefone-emergencia');
@@ -392,8 +394,34 @@
     const linkEmergencia = document.getElementById('link-emergencia');
     const contatoNomeDisplay = document.getElementById('contato-nome');
     const contatoTelefoneDisplay = document.getElementById('contato-telefone-display');
-
     
+    // NOVO: DADOS ESTÁTICOS DO CALENDÁRIO
+    const agendaCentro = {
+        'Segunda-feira': [
+            { horario: '09:00', atividade: 'Ginástica Suave' },
+            { horario: '10:30', atividade: 'Oficina de Artesanato' },
+            { horario: '14:00', atividade: 'Roda de Leitura' }
+        ],
+        'Terça-feira': [
+            { horario: '09:30', atividade: 'Ioga e Meditação' },
+            { horario: '14:30', atividade: 'Bingo Recreativo' }
+        ],
+        'Quarta-feira': [
+            { horario: '10:00', atividade: 'Dança Sênior' },
+            { horario: '15:00', atividade: 'Palestra de Saúde' }
+        ],
+        'Quinta-feira': [
+            { horario: '09:00', atividade: 'Grupo de Caminhada' },
+            { horario: '14:00', atividade: 'Jogos de Tabuleiro' }
+        ],
+        'Sexta-feira': [
+            { horario: '10:30', atividade: 'Música e Coral' },
+            { horario: '15:30', atividade: 'Chá e Conversa' }
+        ],
+        'Sábado': [],
+        'Domingo': []
+    };
+
     // FUNÇÕES DE LOGIN E PERMISSÃO
     function pedirPermissaoNotificacao() {
         if (!("Notification" in window)) {
@@ -423,7 +451,7 @@
         setInterval(verificarRemediosAtrasados, 60000); 
         
         if (document.getElementById('tela-emergencia')) {
-            carregarContatoEmergencia(); // Carrega contato salvo na inicialização
+            carregarContatoEmergencia(); 
         }
     };
 
@@ -448,7 +476,7 @@
         location.reload(); 
     }
 
-    // FUNÇÃO DE NAVEGAÇÃO (ADICIONADA CHAMADA PARA CARREGAR EMERGÊNCIA)
+    // FUNÇÃO DE NAVEGAÇÃO (ATUALIZADA)
     function navegarPara(idTela) {
         const telas = document.querySelectorAll('.tela');
         telas.forEach(tela => tela.classList.remove('ativa'));
@@ -458,25 +486,73 @@
         if (idTela === 'tela-atrasos') {
             carregarRemediosAtrasados();
         } else if (idTela === 'tela-emergencia') {
-            carregarContatoEmergencia(); // Garante que o contato atual seja carregado
+            carregarContatoEmergencia(); 
+        } else if (idTela === 'tela-calendario') { // NOVO
+            carregarCalendario();
         }
     }
     
-    // NOVO: Funções de Salvar e Carregar Contato de Emergência
+    // NOVO: FUNÇÃO PARA CARREGAR O CALENDÁRIO
+    function carregarCalendario() {
+        const container = document.getElementById('calendario-container');
+        container.innerHTML = '';
+        
+        const diasDaSemana = Object.keys(agendaCentro);
+
+        diasDaSemana.forEach(dia => {
+            const atividades = agendaCentro[dia];
+            
+            // Título do Dia
+            const titulo = document.createElement('h3');
+            titulo.style.color = 'var(--cor-secundaria)';
+            titulo.style.marginTop = '20px';
+            titulo.innerText = dia;
+            container.appendChild(titulo);
+
+            if (atividades.length === 0) {
+                const p = document.createElement('p');
+                p.style.fontStyle = 'italic';
+                p.style.color = '#666';
+                p.innerText = 'Nenhuma atividade programada.';
+                container.appendChild(p);
+                return;
+            }
+
+            // Lista de Atividades
+            const ul = document.createElement('ul');
+            ul.style.listStyleType = 'none';
+            ul.style.paddingLeft = '0';
+            ul.style.marginBottom = '30px';
+
+            atividades.forEach(item => {
+                const li = document.createElement('li');
+                li.style.background = '#e6f2ff';
+                li.style.padding = '10px';
+                li.style.marginBottom = '5px';
+                li.style.borderRadius = '5px';
+
+                li.innerHTML = `
+                    <span style="font-weight: bold; color: var(--cor-primaria);">${item.horario}</span>: ${item.atividade}
+                `;
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        });
+    }
+
+    // FUNÇÕES DE EMERGÊNCIA
     function carregarContatoEmergencia() {
         const contato = JSON.parse(localStorage.getItem('contatoEmergencia') || 'null');
         
         if (contato) {
             contatoNomeDisplay.innerText = `Nome: ${contato.nome}`;
             
-            // Exibir telefone formatado
             const telFormatado = contato.telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
             contatoTelefoneDisplay.innerText = telFormatado;
             
-            linkEmergencia.href = `tel:${contato.telefone}`; // Link TEL: para chamada
+            linkEmergencia.href = `tel:${contato.telefone}`; 
             linkEmergencia.style.display = 'block';
             
-            // Preencher o formulário para edição
             if (nomeEmergencia) nomeEmergencia.value = contato.nome;
             if (telefoneEmergencia) telefoneEmergencia.value = contato.telefone;
 
@@ -502,8 +578,7 @@
         });
     }
     
-    
-    // LÓGICA DE AGENDAMENTO (INTERVALO)
+    // FUNÇÕES DE AGENDAMENTO (REMEDIOS)
     function calcularPrimeiraDose(horario, intervaloHoras) {
         const agora = new Date();
         const [h, m] = horario.split(':').map(Number);
@@ -604,7 +679,6 @@
         verificarRemediosAtrasados();
     });
     
-    // FUNÇÃO PARA MARCAR O REMÉDIO COMO TOMADO
     function marcarComoTomado(id, checkbox) {
         let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         const remedioIndex = remedios.findIndex(r => r.id === id);
@@ -641,7 +715,6 @@
     }
 
 
-    // FUNÇÃO CARREGAR TELA DE ATRASOS
     function carregarRemediosAtrasados() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         const atrasosContainer = document.getElementById('lista-atrasos-container');
@@ -684,7 +757,6 @@
         });
     }
 
-    // FUNÇÃO CARREGAR TELA DE REMÉDIOS
     function carregarRemedios() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         listaRemediosContainer.innerHTML = ''; 
