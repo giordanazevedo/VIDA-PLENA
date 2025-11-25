@@ -15,6 +15,7 @@
             --cor-texto: #1a1a1a;       /* Preto suave, alto contraste */
             --cor-branco: #ffffff;
             --cor-sucesso: #2e7d32;     /* Verde escuro */
+            --cor-atraso: #d32f2f;      /* Vermelho forte para atraso */
             --cor-alerta: #d32f2f;      /* Vermelho escuro */
         }
 
@@ -41,7 +42,7 @@
             padding-bottom: 80px; /* Espaço para navegação se houver */
         }
 
-        /* Cabeçalho - Ajustado para o Logo */
+        /* Cabeçalho - Ajustado para o Logo e Notificação */
         header {
             background-color: var(--cor-primaria);
             color: var(--cor-branco);
@@ -50,11 +51,14 @@
             font-size: 1.4rem;
             font-weight: bold;
             
-            /* Adicionado para centralizar logo e texto */
+            /* Flexbox para centralizar */
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 15px;
+            
+            /* Posição relativa para posicionar o ícone de notificação */
+            position: relative;
         }
         
         /* Estilos do Logo */
@@ -63,6 +67,36 @@
             width: auto;
             border-radius: 5px;
         }
+        
+        /* --- NOVO: Ícone de Notificação (Sino) --- */
+        #notificacao-icon {
+            position: absolute;
+            right: 20px;
+            font-size: 1.6rem;
+            cursor: default; /* Não é clicável, apenas indicador */
+            color: var(--cor-branco);
+            line-height: 1; 
+            padding: 5px;
+            display: none; /* Inicia oculto, só aparece se contador > 0 */
+        }
+
+        .badge {
+            position: absolute;
+            top: 0px; /* Ajuste para centralizar em relação ao sino */
+            right: 0px;
+            background-color: var(--cor-atraso); /* Vermelho para atraso */
+            color: var(--cor-branco);
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            /* Garante que o número fique visível sobre o sino */
+            z-index: 10; 
+        }
+        /* ----------------------------------------- */
+
 
         /* Telas (Sections) */
         .tela {
@@ -108,7 +142,6 @@
 
         input:focus {
             border-color: var(--cor-primaria);
-            /* Importante: Foco visível para acessibilidade de teclado */
             outline: 3px solid var(--cor-secundaria); 
             outline-offset: 2px;
         }
@@ -190,7 +223,7 @@
         .btn-remover {
             background-color: var(--cor-alerta);
             width: auto;
-            padding: 10px 15px; /* Aumentado a área de clique */
+            padding: 10px 15px; 
             margin: 0;
             font-size: 1rem;
         }
@@ -212,6 +245,10 @@
     <header id="header-title">
         <img src="logo-vida-plena.png" alt="Logo Vida Plena - Assistente Diário" id="logo-app" onerror="this.style.display='none'">
         Vida Plena
+        
+        <div id="notificacao-icon">
+            🔔<span id="contador-atraso" class="badge">0</span>
+        </div>
     </header>
 
     <section id="tela-login" class="tela ativa">
@@ -284,7 +321,7 @@
 </div>
 
 <script>
-    /* --- JAVASCRIPT: A Lógica do Sistema (Com Notificações e Checkbox) --- */
+    /* --- JAVASCRIPT: A Lógica do Sistema (Com Notificações, Checkbox e Atraso) --- */
 
     const inputNome = document.getElementById('nome-usuario');
     const listaRemediosContainer = document.getElementById('lista-remedios-container');
@@ -316,6 +353,13 @@
         }
         pedirPermissaoNotificacao(); 
         carregarRemedios();
+        
+        // NOVO: Verifica o status de atraso ao carregar
+        verificarRemediosAtrasados();
+        
+        // NOVO: Configura uma verificação a cada 1 minuto para atualizar o status do ícone
+        // Isso é crucial para que o ícone de atraso apareça assim que o horário passar
+        setInterval(verificarRemediosAtrasados, 60000); 
     };
 
     // Funções de Navegação e Login (mantidas)
@@ -347,7 +391,7 @@
         window.scrollTo(0, 0);
     }
     
-    // 2. FUNÇÃO PARA AGENDAR E DISPARAR A NOTIFICAÇÃO (mantida)
+    // 2. FUNÇÃO PARA AGENDAR E DISPARAR A NOTIFICAÇÃO
     function agendarNotificacao(idRemedio, nomeRemedio, horario) {
         if (timersNotificacao[idRemedio]) {
             clearTimeout(timersNotificacao[idRemedio]);
@@ -381,12 +425,50 @@
                 agendarNotificacao(idRemedio, nomeRemedio, horario);
             }, 24 * 60 * 60 * 1000); 
 
+            // NOVO: Chama a verificação para atualizar o ícone após o disparo da notificação
+            verificarRemediosAtrasados();
+
         }, tempoAteOAlerta);
         
         timersNotificacao[idRemedio] = timerId; 
     }
+    
+    // 3. FUNÇÃO PARA VERIFICAR E ATUALIZAR O ÍCONE DE ATRASO (NOVA)
+    function verificarRemediosAtrasados() {
+        const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+        const agora = new Date();
+        let contadorAtraso = 0;
+        
+        remedios.forEach(remedio => {
+            const [h, m] = remedio.horario.split(':').map(Number);
+            
+            // Cria um objeto Date para o horário do remédio HOJE
+            const horaDoRemedioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
+            
+            // Verifica se o horário passou E o remédio NÃO foi tomado
+            const passouDoHorario = horaDoRemedioHoje < agora;
+            
+            if (passouDoHorario && !remedio.tomado) {
+                contadorAtraso++;
+            }
+        });
+        
+        // Atualiza a interface (HTML)
+        const iconContainer = document.getElementById('notificacao-icon');
+        const badge = document.getElementById('contador-atraso');
+        
+        badge.innerText = contadorAtraso;
+        
+        if (contadorAtraso > 0) {
+            iconContainer.style.display = 'block';
+            iconContainer.title = `${contadorAtraso} remédio(s) em atraso! Clique em "Meus Remédios" para conferir.`;
+        } else {
+            iconContainer.style.display = 'none';
+        }
+    }
 
-    // Lógica de Adicionar Remédio (MODIFICADA: Adiciona `tomado: false`)
+
+    // Lógica de Adicionar Remédio (Atualizada)
     document.getElementById('form-remedio').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -394,7 +476,6 @@
         const horarioRemedio = document.getElementById('horario-remedio').value;
         const novoId = Date.now(); 
         
-        // NOVO: Adiciona o status `tomado: false` por padrão
         const novoRemedio = { nome: nomeRemedio, horario: horarioRemedio, id: novoId, tomado: false }; 
         
         agendarNotificacao(novoId, nomeRemedio, horarioRemedio);
@@ -406,19 +487,20 @@
         document.getElementById('form-remedio').reset();
         carregarRemedios();
         alert('Remédio adicionado com sucesso e notificação agendada!');
+        
+        // NOVO: Chama a verificação para atualizar o ícone
+        verificarRemediosAtrasados();
     });
     
-    // 3. FUNÇÃO PARA MARCAR O REMÉDIO COMO TOMADO (NOVA)
+    // 4. FUNÇÃO PARA MARCAR O REMÉDIO COMO TOMADO (Atualizada)
     function marcarComoTomado(id, checkbox) {
         let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         
-        // 1. Encontra e atualiza o remédio
         const remedioIndex = remedios.findIndex(r => r.id === id);
         if (remedioIndex !== -1) {
             remedios[remedioIndex].tomado = checkbox.checked;
             localStorage.setItem('listaRemedios', JSON.stringify(remedios));
             
-            // 2. Atualiza o estilo visual
             const itemElement = document.getElementById(`remedio-${id}`);
             if (itemElement) {
                 if (checkbox.checked) {
@@ -427,10 +509,13 @@
                     itemElement.classList.remove('tomado');
                 }
             }
+            
+            // NOVO: Chama a verificação para atualizar o ícone
+            verificarRemediosAtrasados();
         }
     }
 
-    // 4. FUNÇÃO PARA CARREGAR REMÉDIOS (MODIFICADA)
+    // 5. FUNÇÃO PARA CARREGAR REMÉDIOS (Atualizada)
     function carregarRemedios() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         listaRemediosContainer.innerHTML = ''; 
@@ -448,8 +533,8 @@
             agendarNotificacao(remedio.id, remedio.nome, remedio.horario); 
 
             const div = document.createElement('div');
-            div.className = `lista-item ${remedio.tomado ? 'tomado' : ''}`; // Adiciona a classe 'tomado'
-            div.id = `remedio-${remedio.id}`; // Adiciona um ID para fácil acesso
+            div.className = `lista-item ${remedio.tomado ? 'tomado' : ''}`;
+            div.id = `remedio-${remedio.id}`; 
 
             div.innerHTML = `
                 <div class="lista-item-content">
@@ -473,6 +558,9 @@
             `;
             listaRemediosContainer.appendChild(div);
         });
+        
+        // NOVO: Garante que o ícone é atualizado após carregar
+        verificarRemediosAtrasados();
     }
 
     function removerRemedio(id) {
@@ -485,6 +573,8 @@
             localStorage.setItem('listaRemedios', JSON.stringify(remedios));
             
             carregarRemedios();
+            // NOVO: Chama a verificação para atualizar o ícone
+            verificarRemediosAtrasados();
         }
     }
 </script>
