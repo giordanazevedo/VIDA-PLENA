@@ -238,6 +238,16 @@
             min-height: 30px;
             cursor: pointer;
         }
+        
+        /* Estilo específico para o link de emergência na nova tela */
+        #link-emergencia {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--cor-atraso) !important;
+            margin-top: 15px;
+            text-decoration: none;
+        }
 
     </style>
 </head>
@@ -283,6 +293,38 @@
         </button>
         
         <button onclick="sairDoSistema()" class="btn btn-voltar" style="margin-top: 30px;">Sair</button>
+    </section>
+
+    <section id="tela-remedios" class="tela">
+        <h2>Meus Remédios</h2>
+        <p>Cadastre aqui os remédios que precisa tomar.</p>
+
+        <form id="form-remedio">
+            <label for="nome-remedio">Nome do Remédio:</label>
+            <input type="text" id="nome-remedio" placeholder="Ex: Losartana" required>
+            
+            <label for="intervalo-remedio">Tomar a cada (horas):</label>
+            <select id="intervalo-remedio" required>
+                <option value="">Selecione o intervalo</option>
+                <option value="24">24 horas (1 vez ao dia)</option>
+                <option value="12">12 horas (2 vezes ao dia)</option>
+                <option value="8">8 horas (3 vezes ao dia)</option>
+                <option value="6">6 horas (4 vezes ao dia)</option>
+            </select>
+            
+            <label for="horario-remedio">Primeiro Horário de Hoje (24h):</label>
+            <input type="time" id="horario-remedio" required>
+            
+            <button type="submit" class="btn" style="background-color: var(--cor-sucesso);">Adicionar Remédio</button>
+        </form>
+
+        <hr>
+        <h3>Lista de Remédios Agendados:</h3>
+        <div id="lista-remedios-container">
+            <p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>
+        </div>
+
+        <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
     </section>
 
     <section id="tela-calendario" class="tela">
@@ -331,14 +373,18 @@
 
     <section id="tela-perfil" class="tela">
         <h2>Meus Dados</h2>
-        <p>Aqui estão suas informações pessoais.</p>
+        <p>Aqui você pode visualizar e editar suas informações pessoais.</p>
         
         <div style="background: #eee; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <label>Nome Completo:</label>
-            <p id="perfil-nome" style="font-size: 1.4rem; font-weight: bold;">-</p>
-            
-            <label>Tipo Sanguíneo (Exemplo):</label>
-            <p>O+</p>
+            <form id="form-perfil-edicao">
+                <label for="input-perfil-nome">Nome Completo:</label>
+                <input type="text" id="input-perfil-nome" required style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">
+                
+                <label>Tipo Sanguíneo (Exemplo Fixo):</label>
+                <p>O+</p>
+                
+                <button type="submit" class="btn" style="background-color: var(--cor-sucesso); margin-top: 15px;">Salvar Alterações</button>
+            </form>
         </div>
 
         <button onclick="navegarPara('tela-home')" class="btn btn-voltar">Voltar ao Início</button>
@@ -363,7 +409,12 @@
     const contatoNomeDisplay = document.getElementById('contato-nome');
     const contatoTelefoneDisplay = document.getElementById('contato-telefone-display');
     
-    // NOVO: DADOS ESTÁTICOS DO CALENDÁRIO APENAS NO HORÁRIO DA MANHÃ (08:00h às 11:00h)
+    // NOVAS VARIÁVEIS PARA EDIÇÃO DE PERFIL
+    const formPerfilEdicao = document.getElementById('form-perfil-edicao');
+    const inputPerfilNome = document.getElementById('input-perfil-nome');
+
+    
+    // DADOS ESTÁTICOS DO CALENDÁRIO
     const agendaCentro = {
         'Segunda-feira': [
             { horario: '09:00', atividade: 'Ginástica Suave' },
@@ -385,7 +436,7 @@
         'Domingo': []
     };
 
-    // FUNÇÕES DE LOGIN E PERMISSÃO
+    // FUNÇÕES DE PERFIL E LOGIN
     function pedirPermissaoNotificacao() {
         if (!("Notification" in window)) {
             console.error("Este navegador não suporta notificações de desktop.");
@@ -402,6 +453,30 @@
             });
         }
     }
+    
+    // NOVO: Função para carregar dados do perfil na tela de edição
+    function carregarPerfilDados() {
+        const nome = localStorage.getItem('usuarioIdoso');
+        if (inputPerfilNome) {
+            inputPerfilNome.value = nome || ''; 
+        }
+    }
+    
+    // NOVO: Função para salvar dados do perfil
+    if (formPerfilEdicao) {
+        formPerfilEdicao.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const novoNome = inputPerfilNome.value;
+            if (novoNome) {
+                localStorage.setItem('usuarioIdoso', novoNome);
+                // Atualiza a saudação na tela home
+                document.getElementById('saudacao-home').innerText = "Olá, " + novoNome + "!";
+                alert('Nome atualizado com sucesso!');
+            }
+            // Não navega, apenas salva e recarrega na tela de perfil para confirmação
+        });
+    }
+
 
     window.onload = function() {
         const usuarioSalvo = localStorage.getItem('usuarioIdoso');
@@ -429,7 +504,7 @@
 
     function entrarNoSistema(nome) {
         document.getElementById('saudacao-home').innerText = "Olá, " + nome + "!";
-        document.getElementById('perfil-nome').innerText = nome;
+        // Remoção da linha que setava o perfil-nome, que agora é carregado via carregarPerfilDados
         navegarPara('tela-home');
     }
 
@@ -450,12 +525,14 @@
             carregarRemediosAtrasados();
         } else if (idTela === 'tela-emergencia') {
             carregarContatoEmergencia(); 
-        } else if (idTela === 'tela-calendario') { // NOVO
+        } else if (idTela === 'tela-calendario') {
             carregarCalendario();
+        } else if (idTela === 'tela-perfil') { // NOVO
+            carregarPerfilDados();
         }
     }
     
-    // NOVO: FUNÇÃO PARA CARREGAR O CALENDÁRIO
+    // FUNÇÃO PARA CARREGAR O CALENDÁRIO
     function carregarCalendario() {
         const container = document.getElementById('calendario-container');
         container.innerHTML = '';
@@ -465,7 +542,6 @@
         diasDaSemana.forEach(dia => {
             const atividades = agendaCentro[dia];
             
-            // Título do Dia
             const titulo = document.createElement('h3');
             titulo.style.color = 'var(--cor-secundaria)';
             titulo.style.marginTop = '20px';
@@ -481,7 +557,6 @@
                 return;
             }
 
-            // Lista de Atividades
             const ul = document.createElement('ul');
             ul.style.listStyleType = 'none';
             ul.style.paddingLeft = '0';
