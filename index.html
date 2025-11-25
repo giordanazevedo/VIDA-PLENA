@@ -42,11 +42,11 @@
             padding-bottom: 80px; 
         }
 
-        /* Cabeçalho - Mantém Título Centro e Sino Direita */
+        /* Cabeçalho - AUMENTADO O ESPAÇAMENTO VERTICAL */
         header {
             background-color: var(--cor-primaria);
             color: var(--cor-branco);
-            padding: 15px 20px; 
+            padding: 25px 20px; /* AUMENTADO PARA 25px */
             font-size: 1.4rem;
             font-weight: bold;
             
@@ -409,7 +409,7 @@
     const contatoNomeDisplay = document.getElementById('contato-nome');
     const contatoTelefoneDisplay = document.getElementById('contato-telefone-display');
     
-    // NOVAS VARIÁVEIS PARA EDIÇÃO DE PERFIL
+    // VARIÁVEIS PARA EDIÇÃO DE PERFIL
     const formPerfilEdicao = document.getElementById('form-perfil-edicao');
     const inputPerfilNome = document.getElementById('input-perfil-nome');
 
@@ -454,7 +454,7 @@
         }
     }
     
-    // NOVO: Função para carregar dados do perfil na tela de edição
+    // Função para carregar dados do perfil na tela de edição
     function carregarPerfilDados() {
         const nome = localStorage.getItem('usuarioIdoso');
         if (inputPerfilNome) {
@@ -462,18 +462,16 @@
         }
     }
     
-    // NOVO: Função para salvar dados do perfil
+    // Função para salvar dados do perfil
     if (formPerfilEdicao) {
         formPerfilEdicao.addEventListener('submit', function(e) {
             e.preventDefault();
             const novoNome = inputPerfilNome.value;
             if (novoNome) {
                 localStorage.setItem('usuarioIdoso', novoNome);
-                // Atualiza a saudação na tela home
                 document.getElementById('saudacao-home').innerText = "Olá, " + novoNome + "!";
                 alert('Nome atualizado com sucesso!');
             }
-            // Não navega, apenas salva e recarrega na tela de perfil para confirmação
         });
     }
 
@@ -504,7 +502,6 @@
 
     function entrarNoSistema(nome) {
         document.getElementById('saudacao-home').innerText = "Olá, " + nome + "!";
-        // Remoção da linha que setava o perfil-nome, que agora é carregado via carregarPerfilDados
         navegarPara('tela-home');
     }
 
@@ -514,7 +511,7 @@
         location.reload(); 
     }
 
-    // FUNÇÃO DE NAVEGAÇÃO (ATUALIZADA)
+    // FUNÇÃO DE NAVEGAÇÃO
     function navegarPara(idTela) {
         const telas = document.querySelectorAll('.tela');
         telas.forEach(tela => tela.classList.remove('ativa'));
@@ -527,7 +524,7 @@
             carregarContatoEmergencia(); 
         } else if (idTela === 'tela-calendario') {
             carregarCalendario();
-        } else if (idTela === 'tela-perfil') { // NOVO
+        } else if (idTela === 'tela-perfil') {
             carregarPerfilDados();
         }
     }
