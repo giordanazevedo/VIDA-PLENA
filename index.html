@@ -9,13 +9,13 @@
         
         :root {
             /* Cores Acessíveis e Calmas */
-            --cor-fundo: #F0F4F8;       /* Cinza azulado muito claro */
-            --cor-primaria: #0056b3;    /* Azul forte para boa leitura */
-            --cor-secundaria: #0288d1;  /* Azul médio para botões */
-            --cor-texto: #1a1a1a;       /* Preto suave, alto contraste */
-            --cor-sucesso: #2e7d32;     /* Verde escuro */
-            --cor-atraso: #d32f2f;      /* Vermelho forte para atraso */
-            --cor-alerta: #d32f2f;      /* Vermelho escuro */
+            --cor-fundo: #F0F4F8;       
+            --cor-primaria: #0056b3;    
+            --cor-secundaria: #0288d1;  
+            --cor-texto: #1a1a1a;       
+            --cor-sucesso: #2e7d32;     
+            --cor-atraso: #d32f2f;      
+            --cor-alerta: #d32f2f;      
             --cor-branco: #ffffff;
         }
 
@@ -28,7 +28,7 @@
             margin: 0;
             background-color: var(--cor-fundo);
             color: var(--cor-texto);
-            font-size: 18px; /* Fonte base aumentada para idosos */
+            font-size: 18px; 
             line-height: 1.6;
         }
 
@@ -42,38 +42,44 @@
             padding-bottom: 80px; 
         }
 
-        /* Cabeçalho - Ajustado para o Logo e Notificação */
+        /* Cabeçalho - Ajustado para Logo Esquerda, Título Centro, Sino Direita */
         header {
             background-color: var(--cor-primaria);
             color: var(--cor-branco);
-            padding: 20px;
-            text-align: center;
+            padding: 15px 20px; 
             font-size: 1.4rem;
             font-weight: bold;
             
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
+            justify-content: space-between; /* Empurra logo e sino para as laterais */
             
-            position: relative;
+            position: relative; 
         }
         
-        /* Estilos do Logo */
+        /* NOVO: Estilo para o texto do título para centralizá-lo */
+        #header-title span {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap; 
+        }
+        
+        /* Estilos do Logo (Sino Vermelho) */
         #logo-app {
-            height: 40px; 
+            height: 35px; /* Tamanho ajustado */
             width: auto;
             border-radius: 5px;
         }
         
-        /* --- Ícone de Notificação (Sino) - CORRIGIDO O POSICIONAMENTO --- */
+        /* Ícone de Notificação (Sino) */
         #notificacao-icon {
             position: absolute;
-            right: 20px; /* 20px de distância da borda direita */
-            top: 50%; /* Começa no meio vertical do cabeçalho */
-            transform: translateY(-50%); /* Centraliza perfeitamente na vertical */
+            right: 20px; 
+            top: 50%; 
+            transform: translateY(-50%); 
             font-size: 1.6rem;
-            cursor: pointer; /* Indica que é clicável */
+            cursor: pointer; 
             color: var(--cor-branco);
             display: none; 
             line-height: 1; 
@@ -93,9 +99,7 @@
             text-align: center;
             z-index: 10; 
         }
-        /* ----------------------------------------- */
-
-
+        
         /* Telas (Sections) */
         .tela {
             display: none; 
@@ -241,8 +245,8 @@
 
 <div class="app-container">
     <header id="header-title">
-        <img src="logo-vida-plena.png" alt="Logo Vida Plena - Assistente Diário" id="logo-app" onerror="this.style.display='none'">
-        Vida Plena
+        <img src="notifications_70dp_EA3323_FILL0_wght400_GRAD0_opsz48.png" alt="Logo Notificação" id="logo-app">
+        <span>Vida Plena</span> 
         
         <div id="notificacao-icon" onclick="navegarPara('tela-atrasos')" title="Clique para ver os remédios em atraso">
             🔔<span id="contador-atraso" class="badge">0</span>
@@ -286,7 +290,16 @@
             <label for="nome-remedio">Nome do Remédio:</label>
             <input type="text" id="nome-remedio" placeholder="Ex: Losartana" required>
             
-            <label for="horario-remedio">Horário (24h):</label>
+            <label for="intervalo-remedio">Tomar a cada (horas):</label>
+            <select id="intervalo-remedio" required>
+                <option value="">Selecione o intervalo</option>
+                <option value="24">24 horas (1 vez ao dia)</option>
+                <option value="12">12 horas (2 vezes ao dia)</option>
+                <option value="8">8 horas (3 vezes ao dia)</option>
+                <option value="6">6 horas (4 vezes ao dia)</option>
+            </select>
+            
+            <label for="horario-remedio">Primeiro Horário de Hoje (24h):</label>
             <input type="time" id="horario-remedio" required>
             
             <button type="submit" class="btn" style="background-color: var(--cor-sucesso);">Adicionar Remédio</button>
@@ -330,13 +343,14 @@
 </div>
 
 <script>
-    /* --- JAVASCRIPT: A Lógica do Sistema (Com Notificações, Checkbox e Atraso) --- */
+    /* --- JAVASCRIPT: A Lógica do Sistema --- */
 
     const inputNome = document.getElementById('nome-usuario');
     const listaRemediosContainer = document.getElementById('lista-remedios-container');
+    const inputIntervalo = document.getElementById('intervalo-remedio'); // NOVO
     const timersNotificacao = {}; 
     
-    // FUNÇÕES DE LOGIN E PERMISSÃO (MANTIDAS)
+    // FUNÇÕES DE LOGIN E PERMISSÃO
     function pedirPermissaoNotificacao() {
         if (!("Notification" in window)) {
             console.error("Este navegador não suporta notificações de desktop.");
@@ -386,70 +400,74 @@
         location.reload(); 
     }
 
-    // FUNÇÃO DE NAVEGAÇÃO (MODIFICADA: Chamar carregamento específico)
     function navegarPara(idTela) {
         const telas = document.querySelectorAll('.tela');
         telas.forEach(tela => tela.classList.remove('ativa'));
         document.getElementById(idTela).classList.add('ativa');
         window.scrollTo(0, 0);
 
-        // NOVO: Se a tela de atrasos for chamada, carrega apenas os itens atrasados.
         if (idTela === 'tela-atrasos') {
             carregarRemediosAtrasados();
         }
     }
     
-    // LÓGICA DE NOTIFICAÇÃO E ATRASO (MANTIDA)
-    function agendarNotificacao(idRemedio, nomeRemedio, horario) {
-        if (timersNotificacao[idRemedio]) {
-            clearTimeout(timersNotificacao[idRemedio]);
-        }
-
-        if (Notification.permission !== 'granted') return;
-
+    // NOVO: Calcula a próxima dose baseada em um horário de início e um intervalo
+    function calcularPrimeiraDose(horario, intervaloHoras) {
         const agora = new Date();
         const [h, m] = horario.split(':').map(Number);
         
-        const horaDoRemedioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
+        let proximaDose = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
 
-        let tempoAteOAlerta;
-        
-        if (horaDoRemedioHoje > agora) {
-            tempoAteOAlerta = horaDoRemedioHoje.getTime() - agora.getTime();
-        } else {
-            const horaDoRemedioAmanha = new Date(horaDoRemedioHoje);
-            horaDoRemedioAmanha.setDate(horaDoRemedioAmanha.getDate() + 1); 
-            tempoAteOAlerta = horaDoRemedioAmanha.getTime() - agora.getTime();
+        // A dose inicial já passou hoje. Vamos avançar para a próxima dose agendada.
+        while (proximaDose < agora) {
+            proximaDose.setTime(proximaDose.getTime() + (intervaloHoras * 60 * 60 * 1000));
         }
-        
-        const timerId = setTimeout(() => {
-            new Notification("💊 Hora do Remédio!", {
-                body: `É hora de tomar: ${nomeRemedio} (${horario})`,
-                icon: 'logo-vida-plena.png', 
-            });
-            
-            setTimeout(() => {
-                agendarNotificacao(idRemedio, nomeRemedio, horario);
-            }, 24 * 60 * 60 * 1000); 
-
-            verificarRemediosAtrasados();
-
-        }, tempoAteOAlerta);
-        
-        timersNotificacao[idRemedio] = timerId; 
+        return proximaDose.toISOString(); 
     }
     
-    // FUNÇÃO PARA ATUALIZAR O ÍCONE (MANTIDA)
+    // FUNÇÃO DE AGENDAMENTO (AGORA USA O CAMPO proximaDose)
+    function agendarNotificacao(remedio) {
+        if (timersNotificacao[remedio.id]) {
+            clearTimeout(timersNotificacao[remedio.id]);
+        }
+
+        if (Notification.permission !== 'granted') return;
+        
+        const proximaDose = new Date(remedio.proximaDose);
+        const agora = new Date();
+        
+        // Só agenda se a próxima dose for no futuro
+        if (proximaDose > agora) {
+            const tempoAteOAlerta = proximaDose.getTime() - agora.getTime();
+            
+            const timerId = setTimeout(() => {
+                new Notification("💊 Hora do Remédio!", {
+                    body: `É hora de tomar: ${remedio.nome} (Próxima dose agendada)`,
+                    icon: 'notifications_70dp_EA3323_FILL0_wght400_GRAD0_opsz48.png', 
+                });
+                
+                // Nota: Não reagendamos aqui. A reagenda só ocorre quando o remédio é marcado como TOMADO (para ser dinâmico).
+                verificarRemediosAtrasados();
+
+            }, tempoAteOAlerta);
+            
+            timersNotificacao[remedio.id] = timerId;
+        } else {
+             verificarRemediosAtrasados(); // Já passou, atualiza o ícone de atraso
+        }
+    }
+    
+    // FUNÇÃO PARA ATUALIZAR O ÍCONE (USA O CAMPO proximaDose)
     function verificarRemediosAtrasados() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         const agora = new Date();
         let contadorAtraso = 0;
         
         remedios.forEach(remedio => {
-            const [h, m] = remedio.horario.split(':').map(Number);
-            const horaDoRemedioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
+            const proximaDose = new Date(remedio.proximaDose);
             
-            const passouDoHorario = horaDoRemedioHoje < agora;
+            // Verifica se a hora da próxima dose JÁ PASSOU e o remédio NÃO foi tomado.
+            const passouDoHorario = proximaDose < agora;
             
             if (passouDoHorario && !remedio.tomado) {
                 contadorAtraso++;
@@ -468,64 +486,27 @@
             iconContainer.style.display = 'none';
         }
     }
-
-    // 🌟 NOVA FUNÇÃO: CARREGAR APENAS REMÉDIOS ATRASADOS
-    function carregarRemediosAtrasados() {
-        const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
-        const atrasosContainer = document.getElementById('lista-atrasos-container');
-        const agora = new Date();
-        
-        // 1. Filtrar Remédios em Atraso
-        const remediosAtrasados = remedios.filter(remedio => {
-            const [h, m] = remedio.horario.split(':').map(Number);
-            const horaDoRemedioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
-            const passouDoHorario = horaDoRemedioHoje < agora;
-            
-            // Filtra: passou do horário E não foi tomado
-            return passouDoHorario && !remedio.tomado;
-        }).sort((a, b) => a.horario.localeCompare(b.horario)); 
-
-        atrasosContainer.innerHTML = ''; 
-        
-        if (remediosAtrasados.length === 0) {
-            atrasosContainer.innerHTML = '<p style="font-style: italic; color: var(--cor-sucesso); font-weight: bold;">Nenhum remédio em atraso. Tudo em dia! 🎉</p>';
-            return;
-        }
-
-        // 2. Renderizar a lista na nova tela
-        remediosAtrasados.forEach(remedio => {
-            const div = document.createElement('div');
-            div.className = 'lista-item'; 
-            // Destaca que está em atraso
-            div.style.borderLeft = '5px solid var(--cor-atraso)'; 
-            
-            div.innerHTML = `
-                <div class="lista-item-content" style="flex-grow: 1; display: block;">
-                    <strong>${remedio.nome}</strong>
-                    <span style="color: var(--cor-atraso); font-weight: bold;">Horário: ${remedio.horario} (ATRASADO)</span>
-                </div>
-                <button 
-                    onclick="navegarPara('tela-remedios')" 
-                    class="btn"
-                    style="width: auto; padding: 10px 15px; margin: 0; background-color: var(--cor-secundaria); font-size: 1rem;"
-                >Marcar como Tomado</button>
-            `;
-            atrasosContainer.appendChild(div);
-        });
-    }
-
-
-    // FUNÇÕES CRUD DE REMÉDIOS (MANTIDAS com chamadas para verificarAtrasados)
+    
+    // Lógica de Adicionar Remédio (USA INTERVALO E CALCULA PRIMEIRA DOSE)
     document.getElementById('form-remedio').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const nomeRemedio = document.getElementById('nome-remedio').value;
         const horarioRemedio = document.getElementById('horario-remedio').value;
+        const intervaloHoras = parseInt(inputIntervalo.value); 
         const novoId = Date.now(); 
         
-        const novoRemedio = { nome: nomeRemedio, horario: horarioRemedio, id: novoId, tomado: false }; 
+        const primeiraDose = calcularPrimeiraDose(horarioRemedio, intervaloHoras);
         
-        agendarNotificacao(novoId, nomeRemedio, horarioRemedio);
+        const novoRemedio = { 
+            nome: nomeRemedio, 
+            intervalo: intervaloHoras, 
+            proximaDose: primeiraDose, 
+            id: novoId, 
+            tomado: false 
+        }; 
+        
+        agendarNotificacao(novoRemedio); 
 
         let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         remedios.push(novoRemedio);
@@ -533,16 +514,30 @@
 
         document.getElementById('form-remedio').reset();
         carregarRemedios();
-        alert('Remédio adicionado com sucesso e notificação agendada!');
+        alert(`Remédio adicionado com sucesso e primeira dose agendada para: ${new Date(primeiraDose).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
         verificarRemediosAtrasados();
     });
     
+    // FUNÇÃO PARA MARCAR O REMÉDIO COMO TOMADO (CALCULA PRÓXIMA DOSE NO MOMENTO DO CLIQUE)
     function marcarComoTomado(id, checkbox) {
         let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
-        
         const remedioIndex = remedios.findIndex(r => r.id === id);
+        
         if (remedioIndex !== -1) {
-            remedios[remedioIndex].tomado = checkbox.checked;
+            const remedio = remedios[remedioIndex];
+            remedio.tomado = checkbox.checked;
+            
+            if (checkbox.checked) {
+                // SE MARCOU COMO TOMADO: Calcula a próxima dose a partir de AGORA + intervalo
+                const agora = new Date();
+                const proxima = new Date(agora.getTime() + (remedio.intervalo * 60 * 60 * 1000));
+                remedio.proximaDose = proxima.toISOString();
+                
+                // Reagendamos a notificação para a nova dose
+                agendarNotificacao(remedio); 
+            } 
+            // Se desmarcou, a próximaDose antiga fica em vigor e será tratada como atraso, se for passado.
+
             localStorage.setItem('listaRemedios', JSON.stringify(remedios));
             
             const itemElement = document.getElementById(`remedio-${id}`);
@@ -554,14 +549,60 @@
                 }
             }
             
+            // Atualiza todas as telas e o contador
             verificarRemediosAtrasados();
-            // Se estiver na tela de atrasos, recarrega a lista para remover o item
+            carregarRemedios(); // Recarrega para mostrar a nova proximaDose
             if(document.getElementById('tela-atrasos').classList.contains('ativa')) {
                 carregarRemediosAtrasados();
             }
         }
     }
 
+
+    // FUNÇÃO CARREGAR TELA DE ATRASOS (USA PROXIMA DOSE)
+    function carregarRemediosAtrasados() {
+        const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+        const atrasosContainer = document.getElementById('lista-atrasos-container');
+        const agora = new Date();
+        
+        const remediosAtrasados = remedios.filter(remedio => {
+            const proximaDose = new Date(remedio.proximaDose);
+            const passouDoHorario = proximaDose < agora;
+            return passouDoHorario && !remedio.tomado;
+        }).sort((a, b) => new Date(a.proximaDose) - new Date(b.proximaDose)); 
+
+        atrasosContainer.innerHTML = ''; 
+        
+        if (remediosAtrasados.length === 0) {
+            atrasosContainer.innerHTML = '<p style="font-style: italic; color: var(--cor-sucesso); font-weight: bold;">Nenhum remédio em atraso. Tudo em dia! 🎉</p>';
+            return;
+        }
+
+        remediosAtrasados.forEach(remedio => {
+            const proximaDoseFormatada = new Date(remedio.proximaDose).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const div = document.createElement('div');
+            div.className = 'lista-item'; 
+            div.style.borderLeft = '5px solid var(--cor-atraso)'; 
+            
+            div.innerHTML = `
+                <div class="lista-item-content" style="flex-grow: 1; display: block;">
+                    <strong>${remedio.nome}</strong>
+                    <span style="color: var(--cor-atraso); font-weight: bold;">
+                        Dose de ${proximaDoseFormatada} (a cada ${remedio.intervalo}h) - ATRASADA
+                    </span>
+                </div>
+                <button 
+                    onclick="navegarPara('tela-remedios')" 
+                    class="btn"
+                    style="width: auto; padding: 10px 15px; margin: 0; background-color: var(--cor-secundaria); font-size: 1rem;"
+                >Marcar como Tomado</button>
+            `;
+            atrasosContainer.appendChild(div);
+        });
+    }
+
+    // FUNÇÃO CARREGAR TELA DE REMÉDIOS (USA PROXIMA DOSE E INTERVALO)
     function carregarRemedios() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         listaRemediosContainer.innerHTML = ''; 
@@ -573,27 +614,38 @@
             return;
         }
 
-        remedios.sort((a, b) => a.horario.localeCompare(b.horario)); 
+        remedios.sort((a, b) => new Date(a.proximaDose) - new Date(b.proximaDose)); 
 
         remedios.forEach(remedio => {
-            agendarNotificacao(remedio.id, remedio.nome, remedio.horario); 
-
+            agendarNotificacao(remedio); 
+            
+            const proximaDoseFormatada = new Date(remedio.proximaDose).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
             const div = document.createElement('div');
-            div.className = `lista-item ${remedio.tomado ? 'tomado' : ''}`;
+            let isDoseAtrasada = new Date(remedio.proximaDose) < new Date() && !remedio.tomado;
+            let bordaEstilo = isDoseAtrasada ? 'border-left: 5px solid var(--cor-atraso);' : '';
+            
+            div.className = `lista-item ${!isDoseAtrasada && remedio.tomado ? 'tomado' : ''}`; // Mantém riscado apenas se não estiver em atraso e foi tomado
             div.id = `remedio-${remedio.id}`; 
+            div.style.cssText = bordaEstilo;
+
+            // O checkbox deve ser 'checked' se o item foi tomado E não está atrasado.
+            let isChecked = !isDoseAtrasada && remedio.tomado;
 
             div.innerHTML = `
                 <div class="lista-item-content">
                     <input 
                         type="checkbox" 
                         class="checkbox-grande" 
-                        ${remedio.tomado ? 'checked' : ''} 
+                        ${isChecked ? 'checked' : ''} 
                         onchange="marcarComoTomado(${remedio.id}, this)"
                         aria-label="Marcar ${remedio.nome} como tomado"
                     >
                     <div>
                         <strong>${remedio.nome}</strong>
-                        <span>Horário: ${remedio.horario}</span>
+                        <span>
+                            Próxima Dose: ${proximaDoseFormatada} (a cada ${remedio.intervalo}h)
+                        </span>
                     </div>
                 </div>
                 <button 
@@ -619,7 +671,6 @@
             
             carregarRemedios();
             verificarRemediosAtrasados();
-            // Se estiver na tela de atrasos, recarrega a lista
             if(document.getElementById('tela-atrasos').classList.contains('ativa')) {
                 carregarRemediosAtrasados();
             }
