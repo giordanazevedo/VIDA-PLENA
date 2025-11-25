@@ -161,10 +161,29 @@
             align-items: center;
         }
         
+        .lista-item-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
         .lista-item strong {
             font-size: 1.3rem;
             display: block;
             color: var(--cor-primaria);
+        }
+
+        /* ESTILOS PARA REMÉDIO TOMADO */
+        .lista-item.tomado {
+            background-color: #e0e0e0;
+            opacity: 0.6;
+            border-color: #9e9e9e;
+            transition: opacity 0.3s;
+        }
+
+        .lista-item.tomado strong,
+        .lista-item.tomado span {
+            text-decoration: line-through;
         }
 
         /* Botão Remover (Mais claro e acessível) */
@@ -174,6 +193,15 @@
             padding: 10px 15px; /* Aumentado a área de clique */
             margin: 0;
             font-size: 1rem;
+        }
+        
+        /* Checkbox grande */
+        .checkbox-grande {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            min-height: 30px;
+            cursor: pointer;
         }
 
     </style>
@@ -223,14 +251,14 @@
             <label for="nome-remedio">Nome do Remédio:</label>
             <input type="text" id="nome-remedio" placeholder="Ex: Losartana" required>
             
-            <label for="horario-remedio">Horário:</label>
+            <label for="horario-remedio">Horário (24h):</label>
             <input type="time" id="horario-remedio" required>
             
             <button type="submit" class="btn" style="background-color: var(--cor-sucesso);">Adicionar Remédio</button>
         </form>
 
         <hr>
-        <h3>Lista do dia:</h3>
+        <h3>Lista de Remédios Agendados:</h3>
         <div id="lista-remedios-container">
             <p style="font-style: italic; color: #666;">Nenhum remédio cadastrado ainda.</p>
         </div>
@@ -256,16 +284,13 @@
 </div>
 
 <script>
-    /* --- JAVASCRIPT: A Lógica do Sistema (Com Notificações) --- */
+    /* --- JAVASCRIPT: A Lógica do Sistema (Com Notificações e Checkbox) --- */
 
-    // Variáveis Globais
     const inputNome = document.getElementById('nome-usuario');
     const listaRemediosContainer = document.getElementById('lista-remedios-container');
-    
-    // Objeto para rastrear os timers de notificação (Para evitar duplicidade ou cancelar)
     const timersNotificacao = {}; 
     
-    // --- NOVO: Função para solicitar permissão de Notificação ---
+    // 1. FUNÇÃO PARA SOLICITAR PERMISSÃO DE NOTIFICAÇÃO
     function pedirPermissaoNotificacao() {
         if (!("Notification" in window)) {
             console.error("Este navegador não suporta notificações de desktop.");
@@ -282,19 +307,18 @@
             });
         }
     }
-    // -----------------------------------------------------------
 
-    // Ao carregar a página, verifica se já tem usuário salvo
+    // Ao carregar a página
     window.onload = function() {
         const usuarioSalvo = localStorage.getItem('usuarioIdoso');
         if (usuarioSalvo) {
             entrarNoSistema(usuarioSalvo);
         }
-        pedirPermissaoNotificacao(); // <-- NOVO: Pede a permissão
+        pedirPermissaoNotificacao(); 
         carregarRemedios();
     };
 
-    // Função de Login Simulado
+    // Funções de Navegação e Login (mantidas)
     document.getElementById('form-login').addEventListener('submit', function(e) {
         e.preventDefault(); 
         const nome = inputNome.value;
@@ -312,12 +336,10 @@
 
     function sairDoSistema() {
         localStorage.removeItem('usuarioIdoso');
-        // Ao sair, limpa todos os agendamentos pendentes
         Object.keys(timersNotificacao).forEach(id => clearTimeout(timersNotificacao[id])); 
         location.reload(); 
     }
 
-    // Sistema de Navegação (Troca de Telas)
     function navegarPara(idTela) {
         const telas = document.querySelectorAll('.tela');
         telas.forEach(tela => tela.classList.remove('ativa'));
@@ -325,9 +347,8 @@
         window.scrollTo(0, 0);
     }
     
-    // --- NOVO: Função para agendar e disparar a notificação ---
+    // 2. FUNÇÃO PARA AGENDAR E DISPARAR A NOTIFICAÇÃO (mantida)
     function agendarNotificacao(idRemedio, nomeRemedio, horario) {
-        // Limpa o timer anterior para este ID, se houver
         if (timersNotificacao[idRemedio]) {
             clearTimeout(timersNotificacao[idRemedio]);
         }
@@ -337,71 +358,83 @@
         const agora = new Date();
         const [h, m] = horario.split(':').map(Number);
         
-        // Data/Hora atual para o remédio
         const horaDoRemedioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), h, m, 0);
 
         let tempoAteOAlerta;
         
         if (horaDoRemedioHoje > agora) {
-            // Se a hora é no futuro (ainda hoje)
             tempoAteOAlerta = horaDoRemedioHoje.getTime() - agora.getTime();
         } else {
-            // Se a hora já passou (agenda para amanhã)
             const horaDoRemedioAmanha = new Date(horaDoRemedioHoje);
             horaDoRemedioAmanha.setDate(horaDoRemedioAmanha.getDate() + 1); 
             tempoAteOAlerta = horaDoRemedioAmanha.getTime() - agora.getTime();
         }
         
-        // 2. Agenda a execução
         const timerId = setTimeout(() => {
             new Notification("💊 Hora do Remédio!", {
                 body: `É hora de tomar: ${nomeRemedio} (${horario})`,
-                icon: 'logo-vida-plena.png', // Tente usar o logo
-                vibrate: [200, 100, 200]
+                icon: 'logo-vida-plena.png', 
             });
             
-            // Re-agenda para o dia seguinte (recorrência)
-            // Se a notificação disparou, o próximo alerta é daqui a 24 horas
+            // Re-agenda para o dia seguinte
             setTimeout(() => {
                 agendarNotificacao(idRemedio, nomeRemedio, horario);
             }, 24 * 60 * 60 * 1000); 
 
         }, tempoAteOAlerta);
         
-        timersNotificacao[idRemedio] = timerId; // Salva o ID do timer
+        timersNotificacao[idRemedio] = timerId; 
     }
-    // -----------------------------------------------------------
 
-
-    // Lógica de Remédios (Adicionar e Listar) - ATUALIZADA
+    // Lógica de Adicionar Remédio (MODIFICADA: Adiciona `tomado: false`)
     document.getElementById('form-remedio').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const nomeRemedio = document.getElementById('nome-remedio').value;
         const horarioRemedio = document.getElementById('horario-remedio').value;
-        const novoId = Date.now(); // Cria um ID único
+        const novoId = Date.now(); 
         
-        const novoRemedio = { nome: nomeRemedio, horario: horarioRemedio, id: novoId };
+        // NOVO: Adiciona o status `tomado: false` por padrão
+        const novoRemedio = { nome: nomeRemedio, horario: horarioRemedio, id: novoId, tomado: false }; 
         
-        // Agendar a notificação (NOVO)
         agendarNotificacao(novoId, nomeRemedio, horarioRemedio);
 
-        // Salva no LocalStorage
         let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         remedios.push(novoRemedio);
         localStorage.setItem('listaRemedios', JSON.stringify(remedios));
 
-        // Limpa formulário e recarrega lista
         document.getElementById('form-remedio').reset();
         carregarRemedios();
         alert('Remédio adicionado com sucesso e notificação agendada!');
     });
+    
+    // 3. FUNÇÃO PARA MARCAR O REMÉDIO COMO TOMADO (NOVA)
+    function marcarComoTomado(id, checkbox) {
+        let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
+        
+        // 1. Encontra e atualiza o remédio
+        const remedioIndex = remedios.findIndex(r => r.id === id);
+        if (remedioIndex !== -1) {
+            remedios[remedioIndex].tomado = checkbox.checked;
+            localStorage.setItem('listaRemedios', JSON.stringify(remedios));
+            
+            // 2. Atualiza o estilo visual
+            const itemElement = document.getElementById(`remedio-${id}`);
+            if (itemElement) {
+                if (checkbox.checked) {
+                    itemElement.classList.add('tomado');
+                } else {
+                    itemElement.classList.remove('tomado');
+                }
+            }
+        }
+    }
 
+    // 4. FUNÇÃO PARA CARREGAR REMÉDIOS (MODIFICADA)
     function carregarRemedios() {
         const remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
         listaRemediosContainer.innerHTML = ''; 
         
-        // 1. Limpa todos os agendamentos anteriores antes de recarregar
         Object.keys(timersNotificacao).forEach(id => clearTimeout(timersNotificacao[id])); 
 
         if (remedios.length === 0) {
@@ -412,15 +445,25 @@
         remedios.sort((a, b) => a.horario.localeCompare(b.horario)); 
 
         remedios.forEach(remedio => {
-            // Re-agenda a notificação ao carregar a lista (essencial ao abrir o site)
-            agendarNotificacao(remedio.id, remedio.nome, remedio.horario); // <-- NOVO
+            agendarNotificacao(remedio.id, remedio.nome, remedio.horario); 
 
             const div = document.createElement('div');
-            div.className = 'lista-item';
+            div.className = `lista-item ${remedio.tomado ? 'tomado' : ''}`; // Adiciona a classe 'tomado'
+            div.id = `remedio-${remedio.id}`; // Adiciona um ID para fácil acesso
+
             div.innerHTML = `
-                <div>
-                    <strong>${remedio.nome}</strong>
-                    <span>Horário: ${remedio.horario}</span>
+                <div class="lista-item-content">
+                    <input 
+                        type="checkbox" 
+                        class="checkbox-grande" 
+                        ${remedio.tomado ? 'checked' : ''} 
+                        onchange="marcarComoTomado(${remedio.id}, this)"
+                        aria-label="Marcar ${remedio.nome} como tomado"
+                    >
+                    <div>
+                        <strong>${remedio.nome}</strong>
+                        <span>Horário: ${remedio.horario}</span>
+                    </div>
                 </div>
                 <button 
                     onclick="removerRemedio(${remedio.id})" 
@@ -434,9 +477,8 @@
 
     function removerRemedio(id) {
         if(confirm('Deseja realmente excluir este remédio?')) {
-            // Limpa o agendamento de notificação associado a este remédio
             clearTimeout(timersNotificacao[id]); 
-            delete timersNotificacao[id]; // Remove do objeto de rastreamento
+            delete timersNotificacao[id]; 
             
             let remedios = JSON.parse(localStorage.getItem('listaRemedios') || '[]');
             remedios = remedios.filter(r => r.id !== id);
